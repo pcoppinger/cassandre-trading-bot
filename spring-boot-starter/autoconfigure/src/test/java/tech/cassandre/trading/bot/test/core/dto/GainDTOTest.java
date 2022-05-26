@@ -7,6 +7,7 @@ import tech.cassandre.trading.bot.dto.util.CurrencyDTO;
 import tech.cassandre.trading.bot.dto.util.GainDTO;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,17 +36,17 @@ public class GainDTOTest {
                 // 4.6 BTC
                 // 0.5 ETH
                 // 3 KCS
-                .openingOrderFee(new CurrencyAmountDTO(new BigDecimal("1.5"), BTC))
-                .openingOrderFee(new CurrencyAmountDTO(new BigDecimal("0.5"), ETH))
-                .openingOrderFee(new CurrencyAmountDTO(new BigDecimal("3.1"), BTC))
-                .openingOrderFee(new CurrencyAmountDTO(new BigDecimal("3"), KCS))
+                .openingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("1.5"), BTC)))
+                .openingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("0.5"), ETH)))
+                .openingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("3.1"), BTC)))
+                .openingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("3"), KCS)))
                 // Closing order fees.
                 // 0.8 ETH
                 // 0.1 BTC
                 // 0.9 USDT
-                .closingOrderFee(new CurrencyAmountDTO(new BigDecimal("0.8"), ETH))
-                .closingOrderFee(new CurrencyAmountDTO(new BigDecimal("0.1"), BTC))
-                .closingOrderFee(new CurrencyAmountDTO(new BigDecimal("0.9"), USDT))
+                .closingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("0.8"), ETH)))
+                .closingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("0.1"), BTC)))
+                .closingOrderFees(List.of(new CurrencyAmountDTO(new BigDecimal("0.9"), USDT)))
                 .build();
 
         // Global gain.

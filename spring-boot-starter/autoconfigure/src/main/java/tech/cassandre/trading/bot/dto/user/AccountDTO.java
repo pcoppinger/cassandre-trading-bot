@@ -2,7 +2,7 @@ package tech.cassandre.trading.bot.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Singular;
+//import lombok.Singular;
 import lombok.Value;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import tech.cassandre.trading.bot.dto.util.CurrencyDTO;
@@ -30,11 +30,11 @@ public class AccountDTO {
     String name;
 
     /** Account features. */
-    @Singular
+//  @Singular
     Set<AccountFeatureDTO> features;
 
     /** Represents the different balances for each currency owned by the account. */
-    @Singular
+//  @Singular
     Set<BalanceDTO> balances;
 
     /**

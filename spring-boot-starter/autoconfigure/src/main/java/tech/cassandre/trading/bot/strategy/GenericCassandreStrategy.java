@@ -1,16 +1,22 @@
 package tech.cassandre.trading.bot.strategy;
 
 import lombok.NonNull;
+import org.knowm.xchange.ExchangeSpecification;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import tech.cassandre.trading.bot.batch.OrderFlux;
 import tech.cassandre.trading.bot.batch.PositionFlux;
+import tech.cassandre.trading.bot.batch.TickerFlux;
+import tech.cassandre.trading.bot.batch.TradeFlux;
 import tech.cassandre.trading.bot.domain.Order;
 import tech.cassandre.trading.bot.dto.market.TickerDTO;
-import tech.cassandre.trading.bot.dto.position.PositionCreationResultDTO;
-import tech.cassandre.trading.bot.dto.position.PositionDTO;
-import tech.cassandre.trading.bot.dto.position.PositionRulesDTO;
 import tech.cassandre.trading.bot.dto.position.PositionStatusDTO;
+import tech.cassandre.trading.bot.dto.position.PositionDTO;
+import tech.cassandre.trading.bot.dto.position.PositionTypeDTO;
+import tech.cassandre.trading.bot.dto.position.PositionRulesDTO;
+import tech.cassandre.trading.bot.dto.position.PositionCreationResultDTO;
 import tech.cassandre.trading.bot.dto.strategy.StrategyDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderCreationResultDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderDTO;
@@ -26,6 +32,7 @@ import tech.cassandre.trading.bot.repository.OrderRepository;
 import tech.cassandre.trading.bot.repository.PositionRepository;
 import tech.cassandre.trading.bot.repository.TradeRepository;
 import tech.cassandre.trading.bot.service.ExchangeService;
+import tech.cassandre.trading.bot.service.MarketService;
 import tech.cassandre.trading.bot.service.PositionService;
 import tech.cassandre.trading.bot.service.TradeService;
 import tech.cassandre.trading.bot.util.mapper.CurrencyMapper;
@@ -34,20 +41,26 @@ import tech.cassandre.trading.bot.util.mapper.PositionMapper;
 import tech.cassandre.trading.bot.util.mapper.TickerMapper;
 import tech.cassandre.trading.bot.util.mapper.TradeMapper;
 
+import org.knowm.xchange.dto.Order.IOrderFlags;
+
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.FLOOR;
+import static java.math.RoundingMode.HALF_EVEN;
+import static tech.cassandre.trading.bot.dto.position.PositionStatusDTO.OPENING;
+import static tech.cassandre.trading.bot.dto.position.PositionStatusDTO.OPENED;
 import static tech.cassandre.trading.bot.dto.position.PositionStatusDTO.CLOSED;
 
 /**
@@ -80,9 +93,6 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     /** Strategy. */
     protected StrategyDTO strategy;
 
-    /** Position flux. */
-    protected PositionFlux positionFlux;
-
     /** Order repository. */
     protected OrderRepository orderRepository;
 
@@ -96,13 +106,28 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     protected ImportedTickersRepository importedTickersRepository;
 
     /** Exchange service. */
-    protected ExchangeService exchangeService;
+    private ExchangeService exchangeService;
+
+    /** Market service. */
+    protected MarketService marketService;
 
     /** Trade service. */
     protected TradeService tradeService;
 
     /** Position service. */
-    protected PositionService positionService;
+    private PositionService positionService;
+
+    /** Ticker flux. */
+    protected TickerFlux tickerFlux;
+
+    /** Order flux. */
+    protected OrderFlux orderFlux;
+
+    /** Trade flux. */
+    protected TradeFlux tradeFlux;
+
+    /** Position flux. */
+    private PositionFlux positionFlux;
 
     /** The accounts owned by the user. */
     private final Map<String, AccountDTO> userAccounts = new LinkedHashMap<>();
@@ -118,6 +143,14 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
 
     // =================================================================================================================
     // Internal methods to setup dependencies.
+
+    /**
+     * getTradeService.
+     * @return the trade service
+     */
+    public TradeService getTradeService() {
+        return tradeService;
+    }
 
     /**
      * Getter strategyDTO.
@@ -184,6 +217,11 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     }
 
     @Override
+    public final void setMarketService(final MarketService newMarketService) {
+        this.marketService = newMarketService;
+    }
+
+    @Override
     public final void setTradeService(final TradeService newTradeService) {
         this.tradeService = newTradeService;
     }
@@ -233,7 +271,7 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     public void ordersUpdates(final Set<OrderDTO> orders) {
         // We only retrieve the orders created by this strategy.
         final Map<String, OrderDTO> ordersUpdates = orders.stream()
-                .filter(orderDTO -> orderDTO.getStrategy().getId().equals(strategy.getId()))
+                .filter(orderDTO -> orderDTO.getStrategy() == null || orderDTO.getStrategy().getId().equals(strategy.getId()))
                 .collect(Collectors.toMap(OrderDTO::getOrderId, Function.identity(), (id, value) -> id, LinkedHashMap::new));
 
         // We update the positions with orders.
@@ -533,6 +571,17 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     }
 
     /**
+     * Returns list of open positions.
+     *
+     * @return positions
+     */
+    public final Map<Long, PositionDTO> getOpenPositions() {
+        return positionRepository.findByStatusIn(new HashSet<>(Arrays.asList(OPENING, OPENED)))
+                .stream()
+                .map(positionMapper::mapToPositionDTO)
+                .collect(Collectors.toMap(PositionDTO::getId, positionDTO -> positionDTO));
+    }
+    /**
      * Get a position by its id.
      *
      * @param positionId position id
@@ -559,11 +608,42 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
      *
      * @param currencyPair currency pair
      * @param amount       amount
+     * @param flags        exchange-specific flags
+     * @return order result (order id or error)
+     */
+    public OrderCreationResultDTO createBuyMarketOrder(final CurrencyPairDTO currencyPair,
+                                                       final BigDecimal amount,
+                                                       final Set<IOrderFlags> flags) {
+
+        return tradeService.createBuyMarketOrder(this, currencyPair, amount, flags);
+    }
+
+    /**
+     * Creates a buy market order.
+     *
+     * @param currencyPair currency pair
+     * @param amount       amount
      * @return order result (order id or error)
      */
     public OrderCreationResultDTO createBuyMarketOrder(final CurrencyPairDTO currencyPair,
                                                        final BigDecimal amount) {
-        return tradeService.createBuyMarketOrder(this, currencyPair, amount);
+
+        return createBuyMarketOrder(currencyPair, amount, null);
+    }
+
+    /**
+     * Creates a sell market order.
+     *
+     * @param currencyPair currency pair
+     * @param amount       amount
+     * @param flags        exchange-specific flags
+     * @return order result (order id or error)
+     */
+    public OrderCreationResultDTO createSellMarketOrder(final CurrencyPairDTO currencyPair,
+                                                        final BigDecimal amount,
+                                                        final Set<IOrderFlags> flags) {
+
+        return tradeService.createSellMarketOrder(this, currencyPair, amount, flags);
     }
 
     /**
@@ -575,7 +655,25 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
      */
     public OrderCreationResultDTO createSellMarketOrder(final CurrencyPairDTO currencyPair,
                                                         final BigDecimal amount) {
-        return tradeService.createSellMarketOrder(this, currencyPair, amount);
+
+        return createSellMarketOrder(currencyPair, amount, null);
+    }
+
+    /**
+     * Creates a buy limit order.
+     *
+     * @param currencyPair currency pair
+     * @param amount       amount
+     * @param limitPrice   the highest acceptable price
+     * @param flags        exchange-specific flags
+     * @return order result (order id or error)
+     */
+    public OrderCreationResultDTO createBuyLimitOrder(final CurrencyPairDTO currencyPair,
+                                                      final BigDecimal amount,
+                                                      final BigDecimal limitPrice,
+                                                      final Set<IOrderFlags> flags) {
+
+        return tradeService.createBuyLimitOrder(this, currencyPair, amount, limitPrice, flags);
     }
 
     /**
@@ -589,7 +687,25 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     public OrderCreationResultDTO createBuyLimitOrder(final CurrencyPairDTO currencyPair,
                                                       final BigDecimal amount,
                                                       final BigDecimal limitPrice) {
-        return tradeService.createBuyLimitOrder(this, currencyPair, amount, limitPrice);
+
+        return createBuyLimitOrder(currencyPair, amount, limitPrice, null);
+    }
+
+    /**
+     * Creates a sell limit order.
+     *
+     * @param currencyPair currency pair
+     * @param amount       amount
+     * @param limitPrice   the lowest acceptable price
+     * @param flags        exchange-specific flags
+     * @return order result (order id or error)
+     */
+    public OrderCreationResultDTO createSellLimitOrder(final CurrencyPairDTO currencyPair,
+                                                       final BigDecimal amount,
+                                                       final BigDecimal limitPrice,
+                                                       final Set<IOrderFlags> flags) {
+
+        return tradeService.createSellLimitOrder(this, currencyPair, amount, limitPrice, flags);
     }
 
     /**
@@ -603,7 +719,8 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
     public OrderCreationResultDTO createSellLimitOrder(final CurrencyPairDTO currencyPair,
                                                        final BigDecimal amount,
                                                        final BigDecimal limitPrice) {
-        return tradeService.createSellLimitOrder(this, currencyPair, amount, limitPrice);
+
+        return createSellLimitOrder(currencyPair, amount, limitPrice, null);
     }
 
     /**
@@ -625,6 +742,29 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
      */
     boolean cancelOrder(final String orderId) {
         return tradeService.cancelOrder(orderId);
+    }
+
+    public PositionDTO openPositionWithOrder(final PositionDTO position,
+                                             final OrderDTO openingOrder) {
+        PositionDTO newPosition = new PositionDTO(position, openingOrder);
+        positionFlux.emitValue(newPosition);
+        return newPosition;
+    }
+
+    /**
+     * Creates a long position with its associated rules.
+     * Long position is nothing but buying share.
+     * If you are bullish (means you think that price of X share will rise) at that time you buy some amount of Share is called taking Long Position in share.
+     *
+     * @param type      the position type
+     * @param order     the opening order
+     * @param rules     rules
+     * @return position creation result
+     */
+    public PositionCreationResultDTO createPositionWithOrder(final PositionTypeDTO type,
+                                                            final OrderDTO order,
+                                                            final PositionRulesDTO rules) {
+        return positionService.createPositionWithOrder(this, type, order, rules);
     }
 
     /**
@@ -691,42 +831,83 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
         positionService.forcePositionClosing(id);
     }
 
+    /**
+     * Close position (no matter the rules) using the provided order.
+     * The closing will happen when the next ticker arrives.
+     *
+     * @param position the position
+     * @param order    the order
+     * @return the closed position
+     */
+    public PositionDTO closePositionWithOrder(final PositionDTO position, final OrderDTO order) {
+        position.closePositionWithOrder(order);
+        positionFlux.emitValue(position);
+        return position;
+    }
+
+    /**
+     * Close position (no matter the rules).
+     * The closing will happen when the next ticker arrives.
+     *
+     * @param position the position
+     */
+    public void closePosition(final PositionDTO position) {
+        closePosition(position.getId());
+        OrderDTO order = position.getOpeningOrder();
+        if (order.getStatus().isOpen()) {
+            cancelOrder(order.getId());
+        }
+    }
+
     // =================================================================================================================
     // Methods that can be implemented by strategies.
 
-    @Override
-    public void initialize() {
+    protected void initialize(final ApplicationContext context,
+                              final ExchangeSpecification specification,
+                              final CurrencyPairDTO currencyPair) {
 
+        tickerFlux = new TickerFlux(context, marketService);
+        tickerFlux.subscribe(specification, currencyPair,
+                this::tickersUpdates, throwable -> logger.error("TickersUpdates failing: {}.", throwable.getMessage()));
+
+        tradeFlux = new TradeFlux(orderRepository, tradeRepository, tradeService);
+        tradeFlux.subscribe(specification, currencyPair,
+                this::tradesUpdates, throwable -> logger.error("TradesUpdates failing: {}.", throwable.getMessage()));
+
+        orderFlux = new OrderFlux(tradeService);
+        orderFlux.subscribe(specification, currencyPair,
+                this::ordersUpdates, throwable -> logger.error("OrdersUpdates failing: {}.", throwable.getMessage()));
+    }
+
+    @Override
+    public void initialize(final ApplicationContext context,
+                           final ExchangeSpecification specification) {
+
+        initialize(context, specification, null);
     }
 
     @Override
     public void onAccountsUpdates(final Map<String, AccountDTO> accounts) {
-
     }
 
     @Override
     public void onTickersUpdates(final Map<CurrencyPairDTO, TickerDTO> tickers) {
-
     }
 
     @Override
     public void onOrdersUpdates(final Map<String, OrderDTO> orders) {
-
     }
 
     @Override
     public void onTradesUpdates(final Map<String, TradeDTO> trades) {
-
     }
 
     @Override
     public void onPositionsUpdates(final Map<Long, PositionDTO> positions) {
-
     }
 
     @Override
     public void onPositionsStatusUpdates(final Map<Long, PositionDTO> positions) {
-
     }
 
     // =================================================================================================================
@@ -754,7 +935,7 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
             }
             This means 1 Bitcoin can be bought with 60000 USDT.
          */
-        final TickerDTO ticker = lastTickers.get(new CurrencyPairDTO(currencyWanted, amountToUse.getCurrency()));
+        final TickerDTO ticker = lastTickers.get(CurrencyPairDTO.getInstance(currencyWanted, amountToUse.getCurrency()));
         if (ticker == null) {
             // No ticker for this currency pair.
             return Optional.empty();
@@ -763,7 +944,7 @@ public abstract class GenericCassandreStrategy implements CassandreStrategyInter
             // amountToUse: 150 000 USDT.
             // CurrencyWanted: BTC.
             // How much BTC I can buy ? amountToUse / last
-            return Optional.of(amountToUse.getValue().divide(ticker.getLast(), BIGINTEGER_SCALE, FLOOR));
+            return Optional.of(amountToUse.getValue().divide(ticker.getLast(), BIGINTEGER_SCALE, HALF_EVEN));
         }
     }
 

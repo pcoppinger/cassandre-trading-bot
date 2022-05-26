@@ -14,7 +14,6 @@ import tech.cassandre.trading.bot.dto.util.CurrencyAmountDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyPairDTO;
 import tech.cassandre.trading.bot.dto.util.GainDTO;
-import tech.cassandre.trading.bot.util.exception.PositionException;
 import tech.cassandre.trading.bot.util.java.EqualsBuilder;
 import tech.cassandre.trading.bot.util.test.ExcludeFromCoverageGeneratedReport;
 
@@ -27,8 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.FLOOR;
-import static java.math.RoundingMode.HALF_UP;
+import static java.math.RoundingMode.HALF_EVEN;
 import static lombok.AccessLevel.PRIVATE;
 import static tech.cassandre.trading.bot.dto.position.PositionStatusDTO.CLOSED;
 import static tech.cassandre.trading.bot.dto.position.PositionStatusDTO.CLOSING;
@@ -135,6 +133,26 @@ public class PositionDTO {
     }
 
     /**
+     * Constructor.
+     *
+     * @param position      position
+     * @param newOpenOrder  position type
+     */
+    public PositionDTO(final PositionDTO position,
+                       final OrderDTO newOpenOrder) {
+        this.id = position.id;
+        this.type = position.type;
+        this.positionId = position.positionId;
+        this.strategy = position.strategy;
+        this.currencyPair = position.currencyPair;
+        this.amount = position.amount;
+        this.openingOrder = newOpenOrder;
+        this.rules = position.rules;
+        this.forceClosing = position.forceClosing;
+        this.autoClose = position.autoClose;
+    }
+
+    /**
      * Returns position status.
      *
      * @return status
@@ -199,9 +217,14 @@ public class PositionDTO {
                 final BigDecimal valueICanSell = amount.getValue().multiply(price);
 
                 // Percentage.
-                final BigDecimal gainPercentage = ((valueICanSell.subtract(valueIBought))
-                        .divide(valueIBought, BIGINTEGER_SCALE, FLOOR))
-                        .multiply(ONE_HUNDRED_BIG_DECIMAL);
+                final BigDecimal gainPercentage;
+                if (!valueIBought.equals(ZERO)) {
+                    gainPercentage = ((valueICanSell.subtract(valueIBought))
+                            .divide(valueIBought, BIGINTEGER_SCALE, HALF_EVEN))
+                            .multiply(ONE_HUNDRED_BIG_DECIMAL);
+                } else {
+                    gainPercentage = ZERO;
+                }
 
                 return Optional.of(GainDTO.builder()
                         .percentage(gainPercentage.floatValue())
@@ -239,10 +262,10 @@ public class PositionDTO {
                     // If we did not receive all trades, I use order information.
                     amountGained = openingOrder.getAmountValue().multiply(openingOrder.getAveragePriceValue());
                 }
-                final BigDecimal amountICanBuy = amountGained.divide(price, BIGINTEGER_SCALE, FLOOR);
+                final BigDecimal amountICanBuy = amountGained.divide(price, BIGINTEGER_SCALE, HALF_EVEN);
                 // Percentage.
                 final BigDecimal gainPercentage = ((amountICanBuy.subtract(amount.getValue()))
-                        .divide(amount.getValue(), BIGINTEGER_SCALE, FLOOR))
+                        .divide(amount.getValue(), BIGINTEGER_SCALE, HALF_EVEN))
                         .multiply(ONE_HUNDRED_BIG_DECIMAL);
 
                 return Optional.of(GainDTO.builder()
@@ -410,9 +433,6 @@ public class PositionDTO {
      */
     public final void closePositionWithOrder(final OrderDTO newCloseOrder) {
         // This method should only be called when in status OPENED.
-        if (getStatus() != OPENED) {
-            throw new PositionException("Impossible to close position " + id + " because of its status " + getStatus());
-        }
         closingOrder = newCloseOrder;
     }
 
@@ -492,7 +512,7 @@ public class PositionDTO {
 
                 // Calculate gain.
                 BigDecimal gainAmount = sold.subtract(bought);
-                BigDecimal gainPercentage = ((sold.subtract(bought)).divide(bought, HALF_UP)).multiply(ONE_HUNDRED_BIG_DECIMAL);
+                BigDecimal gainPercentage = ((sold.subtract(bought)).divide(bought, HALF_EVEN)).multiply(ONE_HUNDRED_BIG_DECIMAL);
 
                 // Opening & closing order fees.
                 final List<CurrencyAmountDTO> openingOrderFees = openingOrder.getTrades()
@@ -524,7 +544,7 @@ public class PositionDTO {
 
                 // Return position gain.
                 return GainDTO.builder()
-                        .percentage(gainPercentage.setScale(2, HALF_UP).doubleValue())
+                        .percentage(gainPercentage.setScale(2, HALF_EVEN).doubleValue())
                         .amount(CurrencyAmountDTO.builder()
                                 .value(gainAmount)
                                 .currency(currencyPair.getQuoteCurrency())
@@ -551,7 +571,7 @@ public class PositionDTO {
 
                 // Calculate gain.
                 BigDecimal gainAmount = bought.subtract(sold);
-                BigDecimal gainPercentage = ((bought.subtract(sold)).divide(sold, HALF_UP)).multiply(ONE_HUNDRED_BIG_DECIMAL);
+                BigDecimal gainPercentage = ((bought.subtract(sold)).divide(sold, HALF_EVEN)).multiply(ONE_HUNDRED_BIG_DECIMAL);
 
                 // Opening & closing order fees.
                 final List<CurrencyAmountDTO> openingOrderFees = openingOrder.getTrades()
@@ -583,7 +603,7 @@ public class PositionDTO {
 
                 // Return position gain.
                 return GainDTO.builder()
-                        .percentage(gainPercentage.setScale(2, HALF_UP).doubleValue())
+                        .percentage(gainPercentage.setScale(2, HALF_EVEN).doubleValue())
                         .amount(CurrencyAmountDTO.builder()
                                 .value(gainAmount)
                                 .currency(currencyPair.getBaseCurrency())

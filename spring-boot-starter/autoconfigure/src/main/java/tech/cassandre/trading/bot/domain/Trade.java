@@ -27,6 +27,8 @@ import java.time.ZonedDateTime;
 
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.IDENTITY;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.PRECISION;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.SCALE;
 
 /**
  * Trade.
@@ -66,7 +68,7 @@ public class Trade extends BaseDomain {
     /** Amount that was ordered. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "AMOUNT_CURRENCY"))
     })
     private CurrencyAmount amount;
@@ -74,7 +76,7 @@ public class Trade extends BaseDomain {
     /** The price. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "PRICE_CURRENCY"))
     })
     private CurrencyAmount price;
@@ -82,7 +84,7 @@ public class Trade extends BaseDomain {
     /** The fee that was charged by the exchange for this trade. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "FEE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "FEE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "FEE_CURRENCY"))
     })
     private CurrencyAmount fee;

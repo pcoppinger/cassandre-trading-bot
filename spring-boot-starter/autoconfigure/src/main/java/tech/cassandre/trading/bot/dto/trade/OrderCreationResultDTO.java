@@ -51,7 +51,7 @@ public final class OrderCreationResultDTO {
     /**
      * Getter orderId.
      *
-     * @return orderId
+     * @return order id
      */
     public String getOrderId() {
         if (getOrder() != null) {

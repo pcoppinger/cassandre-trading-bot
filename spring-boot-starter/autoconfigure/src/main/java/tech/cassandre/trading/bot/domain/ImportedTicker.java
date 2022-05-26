@@ -111,7 +111,7 @@ public class ImportedTicker {
      */
     public CurrencyPairDTO getCurrencyPairDTO() {
         if (currencyPair != null) {
-            return new CurrencyPairDTO(currencyPair);
+            return CurrencyPairDTO.getInstance(currencyPair);
         } else {
             return null;
         }

@@ -62,7 +62,7 @@ public class MarketServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check get ticker")
     public void checkGetTicker() {
-        CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
         Set<TickerDTO> tickers = marketService.getTickers(Collections.singleton(cp));
         final Optional<TickerDTO> t = tickers.stream().filter(tickerDTO -> tickerDTO.getCurrencyPair().equals(cp)).findFirst();
         assertTrue(t.isPresent());

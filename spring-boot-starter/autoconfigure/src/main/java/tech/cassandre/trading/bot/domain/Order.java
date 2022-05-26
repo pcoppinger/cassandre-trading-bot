@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.Hibernate;
+import tech.cassandre.trading.bot.dto.trade.OrderIntentionDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderStatusDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderTypeDTO;
 import tech.cassandre.trading.bot.util.base.domain.BaseDomain;
@@ -21,11 +22,13 @@ import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,6 +36,8 @@ import java.util.Set;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.PRECISION;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.SCALE;
 
 /**
  * Order.
@@ -42,7 +47,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "ORDERS")
+@Table(name = "ORDERS", indexes = {
+        @Index(columnList = "ORDER_ID"),
+        @Index(columnList = "STATUS")
+})
 public class Order extends BaseDomain {
 
     /** Technical ID. */
@@ -52,7 +60,8 @@ public class Order extends BaseDomain {
     private Long id;
 
     /** An identifier set by the exchange that uniquely identifies the order. */
-    @Column(name = "ORDER_ID")
+    @NotNull
+    @Column(name = "ORDER_ID", unique = true)
     private String orderId;
 
     /** Order type i.e. bid (buy) or ask (sell). */
@@ -72,7 +81,7 @@ public class Order extends BaseDomain {
     /** Amount that was ordered. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "AMOUNT_CURRENCY"))
     })
     private CurrencyAmount amount;
@@ -80,15 +89,23 @@ public class Order extends BaseDomain {
     /** Weighted Average price of the fills in the order. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "AVERAGE_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "AVERAGE_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "AVERAGE_PRICE_CURRENCY"))
     })
     private CurrencyAmount averagePrice;
 
+    /** Stop price. */
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "STOP_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
+            @AttributeOverride(name = "currency", column = @Column(name = "STOP_PRICE_CURRENCY"))
+    })
+    private CurrencyAmount stopPrice;
+
     /** Limit price. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "LIMIT_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "LIMIT_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "LIMIT_PRICE_CURRENCY"))
     })
     private CurrencyAmount limitPrice;
@@ -96,7 +113,7 @@ public class Order extends BaseDomain {
     /** Market price - The price Cassandre had when the order was created. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "MARKET_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "MARKET_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "MARKET_PRICE_CURRENCY"))
     })
     private CurrencyAmount marketPrice;
@@ -113,7 +130,7 @@ public class Order extends BaseDomain {
     /** Amount to be ordered / amount that has been matched against order on the order book/filled. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "CUMULATIVE_AMOUNT_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "CUMULATIVE_AMOUNT_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "CUMULATIVE_AMOUNT_CURRENCY"))
     })
     private CurrencyAmount cumulativeAmount;
@@ -125,6 +142,23 @@ public class Order extends BaseDomain {
     /** The timestamp of the order. */
     @Column(name = "TIMESTAMP")
     private ZonedDateTime timestamp;
+
+    /** The timestamp when the order was last updated. */
+    @Column(name = "XCHANGE_UPDATED_AT")
+    private ZonedDateTime updatedAt;
+
+    /** The timestamp when the order entered a final state (filled or canceled). */
+    @Column(name = "XCHANGE_END_AT")
+    private ZonedDateTime endAt;
+
+    /** Order intention. */
+    @Enumerated(STRING)
+    @Column(name = "INTENTION")
+    private OrderIntentionDTO intention;
+
+    /** Indicates that the stop price was triggered and the order became active. */
+    @Column(name = "STOP_TRIGGERED")
+    private Boolean stopTriggered;
 
     /** All trades related to order. */
     @OneToMany(mappedBy = "order", fetch = EAGER)
@@ -156,6 +190,11 @@ public class Order extends BaseDomain {
                 .append(this.cumulativeAmount, that.cumulativeAmount)
                 .append(this.userReference, that.userReference)
                 .append(this.timestamp, that.timestamp)
+                .append(this.updatedAt, that.updatedAt)
+                .append(this.endAt, that.endAt)
+                .append(this.intention, that.intention)
+                .append(this.stopPrice, that.stopPrice)
+                .append(this.stopTriggered, that.stopTriggered)
                 .isEquals();
     }
 

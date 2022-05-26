@@ -70,7 +70,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check creates a buy/sell market order")
     public void checkCreateBuySellMarketOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy market order with a size below the minimum requirement. Testing error management.
@@ -98,7 +98,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check creates a buy limit order")
     public void checkCreateBuyLimitOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy limit order (Buy 0.0001 ETH).
@@ -139,7 +139,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check cancel an order")
     @Disabled("Not supported by Coinbase")
     public void checkCancelOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(BTC, USD);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(BTC, USD);
 
         // Making a buy limit order.
         final OrderCreationResultDTO result1 = strategy.createSellLimitOrder(cp, new BigDecimal("0.01"), new BigDecimal("100000"));
@@ -162,7 +162,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check get trades")
     public void checkGetTrades() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(BTC, USD);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(BTC, USD);
 
         // Creates two orders of the same amount (one buy, one sell).
         final OrderCreationResultDTO result1 = strategy.createBuyMarketOrder(cp, new BigDecimal("0.1"));

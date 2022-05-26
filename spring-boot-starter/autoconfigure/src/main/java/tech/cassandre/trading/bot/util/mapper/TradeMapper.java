@@ -36,7 +36,7 @@ public interface TradeMapper {
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "updatedOn", ignore = true)
     default CurrencyAmountDTO mapUserTradeToTradeDTOAmount(UserTrade source) {
-        CurrencyPairDTO cp = new CurrencyPairDTO(source.getInstrument());
+        CurrencyPairDTO cp = CurrencyPairDTO.getInstance(source.getInstrument());
         if (source.getOriginalAmount() != null && source.getInstrument() != null) {
             return CurrencyAmountDTO.builder()
                     .value(source.getOriginalAmount())
@@ -49,7 +49,7 @@ public interface TradeMapper {
 
     @Named("mapUserTradeToTradeDTOPrice")
     default CurrencyAmountDTO mapUserTradeToTradeDTOPrice(UserTrade source) {
-        CurrencyPairDTO cp = new CurrencyPairDTO(source.getInstrument());
+        CurrencyPairDTO cp = CurrencyPairDTO.getInstance(source.getInstrument());
         if (source.getPrice() != null && source.getInstrument() != null) {
             return CurrencyAmountDTO.builder()
                     .value(source.getPrice())

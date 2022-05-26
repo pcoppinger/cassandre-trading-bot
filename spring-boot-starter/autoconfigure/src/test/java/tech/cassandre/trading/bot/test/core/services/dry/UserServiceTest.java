@@ -308,7 +308,7 @@ public class UserServiceTest extends BaseTest {
         // =============================================================================================================
         // Received ticker for ETH/EUR.
         ticker = TickerDTO.builder()
-                .currencyPair(new CurrencyPairDTO(ETH, EUR))
+                .currencyPair(CurrencyPairDTO.getInstance(ETH, EUR))
                 .last(new BigDecimal("0.032666"))
                 .bid(new BigDecimal("0.032466"))
                 .ask(new BigDecimal("0.032657"))
@@ -322,7 +322,7 @@ public class UserServiceTest extends BaseTest {
 
         // =============================================================================================================
         // Buying with a currency we don't have.
-        final OrderCreationResultDTO buyMarketOrder1 = strategy.createBuyMarketOrder(new CurrencyPairDTO(ETH, EUR), new BigDecimal("1000"));
+        final OrderCreationResultDTO buyMarketOrder1 = strategy.createBuyMarketOrder(CurrencyPairDTO.getInstance(ETH, EUR), new BigDecimal("1000"));
         assertFalse(buyMarketOrder1.isSuccessful());
         assertTrue(buyMarketOrder1.getErrorMessage().contains("No assets (EUR)"));
 
@@ -355,7 +355,7 @@ public class UserServiceTest extends BaseTest {
         // =============================================================================================================
         // Received ticker for ETH/EUR.
         ticker = TickerDTO.builder()
-                .currencyPair(new CurrencyPairDTO(ETH, EUR))
+                .currencyPair(CurrencyPairDTO.getInstance(ETH, EUR))
                 .last(new BigDecimal("0.032666"))
                 .bid(new BigDecimal("0.032466"))
                 .ask(new BigDecimal("0.032657"))
@@ -369,7 +369,7 @@ public class UserServiceTest extends BaseTest {
 
         // =============================================================================================================
         // Selling with a currency we don't have.
-        final OrderCreationResultDTO sellMarketOrder1 = strategy.createSellMarketOrder(new CurrencyPairDTO(ETH, EUR), new BigDecimal("1000"));
+        final OrderCreationResultDTO sellMarketOrder1 = strategy.createSellMarketOrder(CurrencyPairDTO.getInstance(ETH, EUR), new BigDecimal("1000"));
         assertFalse(sellMarketOrder1.isSuccessful());
         assertTrue(sellMarketOrder1.getErrorMessage().contains("Not enough assets"));
 

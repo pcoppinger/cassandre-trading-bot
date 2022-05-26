@@ -42,7 +42,7 @@ public class TradeServiceDryModeTestMock {
         given(marketService.getTickers(any())).willThrow(new NotAvailableFromExchangeException("Not available in test"));
 
         // Replies for ETH / BTC.
-        final CurrencyPairDTO cp1 = new CurrencyPairDTO(CurrencyDTO.ETH, CurrencyDTO.BTC);
+        final CurrencyPairDTO cp1 = CurrencyPairDTO.getInstance(CurrencyDTO.ETH, CurrencyDTO.BTC);
         given(marketService
                 .getTicker(cp1))
                 .willReturn(Optional.of(TickerDTO.builder().currencyPair(cp1).timestamp(ZonedDateTime.now()).last(new BigDecimal("0.2")).build())

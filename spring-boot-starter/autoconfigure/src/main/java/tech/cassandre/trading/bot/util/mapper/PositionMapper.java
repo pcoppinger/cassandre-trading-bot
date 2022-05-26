@@ -21,8 +21,8 @@ public interface PositionMapper {
     // =================================================================================================================
     // DTO to Domain.
 
-    @Mapping(source = "currencyPair.baseCurrencyPrecision", target = "baseCurrencyPrecision")
-    @Mapping(source = "currencyPair.quoteCurrencyPrecision", target = "quoteCurrencyPrecision")
+    @Mapping(source = "currencyPair.baseScale", target = "baseScale")
+    @Mapping(source = "currencyPair.quoteScale", target = "quoteScale")
     @Mapping(source = "rules.stopGainPercentage", target = "stopGainPercentageRule")
     @Mapping(source = "rules.stopLossPercentage", target = "stopLossPercentageRule")
     @Mapping(target = "createdOn", ignore = true)
@@ -37,8 +37,8 @@ public interface PositionMapper {
     @Mapping(target = "forceClosing", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "updatedOn", ignore = true)
-    @Mapping(target = "baseCurrencyPrecision", ignore = true)
-    @Mapping(target = "quoteCurrencyPrecision", ignore = true)
+    @Mapping(target = "baseScale", ignore = true)
+    @Mapping(target = "quoteScale", ignore = true)
     void updatePosition(PositionDTO source, @MappingTarget Position target);
 
     // =================================================================================================================
@@ -50,11 +50,11 @@ public interface PositionMapper {
 
     @Named("mapToPositionDTOCurrencyPair")
     default CurrencyPairDTO mapToPositionDTOCurrencyPair(Position source) {
-        return new CurrencyPairDTO(
+        return CurrencyPairDTO.getInstance(
                 source.getCurrencyPair().split(CURRENCY_PAIR_SEPARATOR)[0],
                 source.getCurrencyPair().split(CURRENCY_PAIR_SEPARATOR)[1],
-                source.getBaseCurrencyPrecision(),
-                source.getQuoteCurrencyPrecision());
+                source.getBaseScale(),
+                source.getQuoteScale());
     }
 
     default PositionRulesDTO mapToPositionRulesDTO(Position source) {

@@ -4,7 +4,9 @@ import tech.cassandre.trading.bot.dto.market.TickerDTO;
 import tech.cassandre.trading.bot.dto.position.PositionCreationResultDTO;
 import tech.cassandre.trading.bot.dto.position.PositionDTO;
 import tech.cassandre.trading.bot.dto.position.PositionRulesDTO;
+import tech.cassandre.trading.bot.dto.position.PositionTypeDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderCreationResultDTO;
+import tech.cassandre.trading.bot.dto.trade.OrderDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyAmountDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyPairDTO;
@@ -20,6 +22,20 @@ import java.util.Set;
  * Service allowing you to manage your positions.
  */
 public interface PositionService {
+
+    /**
+     * Creates a position with its associated rules from an existing order.
+     *
+     * @param strategy     strategy
+     * @param type         the position type
+     * @param order        the entry order
+     * @param rules        rules
+     * @return position creation result
+     */
+    PositionCreationResultDTO createPositionWithOrder(GenericCassandreStrategy strategy,
+                                                      PositionTypeDTO type,
+                                                      OrderDTO order,
+                                                      PositionRulesDTO rules);
 
     /**
      * Creates a long position with its associated rules.
@@ -60,6 +76,16 @@ public interface PositionService {
      * @param newRules new rules
      */
     void updatePositionRules(long id, PositionRulesDTO newRules);
+
+    /**
+     * Close a position - This method is used by Cassandre internally.
+     *
+     * @param strategy strategy
+     * @param id       position id
+     * @param order    order
+     * @return order creation result
+     */
+    boolean closePositionWithOrder(GenericCassandreStrategy strategy, long id, OrderDTO order);
 
     /**
      * Close a position - This method is used by Cassandre internally.

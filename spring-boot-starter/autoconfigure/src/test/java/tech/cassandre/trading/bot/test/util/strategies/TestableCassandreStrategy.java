@@ -1,9 +1,11 @@
 package tech.cassandre.trading.bot.test.util.strategies;
 
 import lombok.Getter;
+import org.knowm.xchange.ExchangeSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import tech.cassandre.trading.bot.dto.market.TickerDTO;
 import tech.cassandre.trading.bot.dto.position.PositionDTO;
 import tech.cassandre.trading.bot.dto.trade.OrderDTO;
@@ -12,6 +14,7 @@ import tech.cassandre.trading.bot.dto.user.AccountDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyPairDTO;
 import tech.cassandre.trading.bot.strategy.BasicCassandreStrategy;
 import tech.cassandre.trading.bot.strategy.CassandreStrategy;
+import tech.cassandre.trading.bot.util.parameters.ExchangeParameters;
 
 import java.time.Duration;
 import java.util.LinkedList;
@@ -108,7 +111,9 @@ public class TestableCassandreStrategy extends BasicCassandreStrategy {
     }
 
     @Override
-    public void initialize() {
+    public void initialize(final ApplicationContext context,
+                           final ExchangeSpecification specification) {
+
         initialized = true;
     }
 

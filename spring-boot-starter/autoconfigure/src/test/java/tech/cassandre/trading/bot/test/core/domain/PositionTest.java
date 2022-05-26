@@ -100,7 +100,7 @@ public class PositionTest extends BaseTest {
         assertNotNull(p.getStrategy());
         assertEquals(1, p.getStrategy().getId());
         assertEquals("01", p.getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("BTC/USDT"), p.getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("BTC/USDT"), p.getCurrencyPair());
         assertEquals(0, new BigDecimal("10").compareTo(p.getAmount().getValue()));
         assertEquals(BTC, p.getAmount().getCurrency());
         assertFalse(p.getRules().isStopGainPercentageSet());
@@ -128,7 +128,7 @@ public class PositionTest extends BaseTest {
         assertNotNull(p.getStrategy());
         assertEquals(1, p.getStrategy().getId());
         assertEquals("01", p.getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("BTC/USDT"), p.getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("BTC/USDT"), p.getCurrencyPair());
         assertEquals(0, new BigDecimal("20").compareTo(p.getAmount().getValue()));
         assertEquals(BTC, p.getAmount().getCurrency());
         assertTrue(p.getRules().isStopGainPercentageSet());
@@ -156,7 +156,7 @@ public class PositionTest extends BaseTest {
         assertNotNull(p.getStrategy());
         assertEquals(1, p.getStrategy().getId());
         assertEquals("01", p.getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("BTC/USDT"), p.getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("BTC/USDT"), p.getCurrencyPair());
         assertEquals(0, new BigDecimal("30").compareTo(p.getAmount().getValue()));
         assertEquals(BTC, p.getAmount().getCurrency());
         assertFalse(p.getRules().isStopGainPercentageSet());
@@ -186,7 +186,7 @@ public class PositionTest extends BaseTest {
         assertNotNull(p.getStrategy());
         assertEquals(1, p.getStrategy().getId());
         assertEquals("01", p.getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("BTC/USDT"), p.getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("BTC/USDT"), p.getCurrencyPair());
         assertEquals(0, new BigDecimal("40").compareTo(p.getAmount().getValue()));
         assertEquals(BTC, p.getAmount().getCurrency());
         assertTrue(p.getRules().isStopGainPercentageSet());
@@ -216,7 +216,7 @@ public class PositionTest extends BaseTest {
         assertNotNull(p.getStrategy());
         assertEquals(1, p.getStrategy().getId());
         assertEquals("01", p.getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("ETH/USD"), p.getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("ETH/USD"), p.getCurrencyPair());
         assertEquals(0, new BigDecimal("50").compareTo(p.getAmount().getValue()));
         assertEquals(ETH, p.getAmount().getCurrency());
         assertTrue(p.getRules().isStopGainPercentageSet());

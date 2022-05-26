@@ -78,7 +78,7 @@ public class LargeTestableCassandreStrategy extends BasicCassandreStrategy {
         requestedTickers.add(BTC_USDT);
         requestedTickers.add(KCS_USDT);
         requestedTickers.add(BTC_ETH);
-        requestedTickers.add(new CurrencyPairDTO(ETH, EUR));
+        requestedTickers.add(CurrencyPairDTO.getInstance(ETH, EUR));
         return requestedTickers;
     }
 

@@ -3,7 +3,7 @@ package tech.cassandre.trading.bot.dto.user;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.Singular;
+//import lombok.Singular;
 import lombok.Value;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import tech.cassandre.trading.bot.util.java.EqualsBuilder;
@@ -29,7 +29,7 @@ public class UserDTO {
     String id;
 
     /** The accounts owned by the user. */
-    @Singular
+ // @Singular
     Map<String, AccountDTO> accounts;
 
     /** Information timestamp. */

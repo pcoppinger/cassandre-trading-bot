@@ -7,19 +7,16 @@ import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import si.mazi.rescu.HttpStatusIOException;
 import tech.cassandre.trading.bot.batch.AccountFlux;
-import tech.cassandre.trading.bot.batch.OrderFlux;
 import tech.cassandre.trading.bot.batch.PositionFlux;
-import tech.cassandre.trading.bot.batch.TickerFlux;
-import tech.cassandre.trading.bot.batch.TradeFlux;
+import tech.cassandre.trading.bot.service.ActiveOrderController;
 import tech.cassandre.trading.bot.repository.OrderRepository;
 import tech.cassandre.trading.bot.repository.PositionRepository;
-import tech.cassandre.trading.bot.repository.TradeRepository;
 import tech.cassandre.trading.bot.service.ExchangeService;
 import tech.cassandre.trading.bot.service.ExchangeServiceXChangeImplementation;
 import tech.cassandre.trading.bot.service.MarketService;
@@ -52,17 +49,17 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
     /** Unauthorized http status code. */
     private static final int UNAUTHORIZED_STATUS_CODE = 401;
 
-    /** Application context. */
-    private final ApplicationContext applicationContext;
-
     /** Exchange parameters. */
     private final ExchangeParameters exchangeParameters;
 
+    /** Exchange specification. */
+    private ExchangeSpecification exchangeSpecification;
+
+    /** Application event publisher. */
+    private final ApplicationEventPublisher publisher;
+
     /** Order repository. */
     private final OrderRepository orderRepository;
-
-    /** Trade repository. */
-    private final TradeRepository tradeRepository;
 
     /** Position repository. */
     private final PositionRepository positionRepository;
@@ -94,15 +91,6 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
     /** Account flux. */
     private AccountFlux accountFlux;
 
-    /** Ticker flux. */
-    private TickerFlux tickerFlux;
-
-    /** Order flux. */
-    private OrderFlux orderFlux;
-
-    /** Trade flux. */
-    private TradeFlux tradeFlux;
-
     /** Position flux. */
     private PositionFlux positionFlux;
 
@@ -114,7 +102,7 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
         try {
             // Instantiate exchange.
             Class<? extends Exchange> exchangeClass = Class.forName(getExchangeClassName()).asSubclass(Exchange.class);
-            ExchangeSpecification exchangeSpecification = new ExchangeSpecification(exchangeClass);
+            exchangeSpecification = new ExchangeSpecification(exchangeClass);
 
             // Exchange configuration.
             exchangeSpecification.setExchangeSpecificParametersItem(USE_SANDBOX_PARAMETER, exchangeParameters.getModes().getSandbox());
@@ -197,8 +185,17 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
                 .concat(exchangeParameters.getDriverClassName().toLowerCase())                  // domain (kucoin).
                 .concat(".")                                                                    // A dot (.)
                 .concat(exchangeParameters.getDriverClassName().substring(0, 1).toUpperCase())  // First letter uppercase (K).
-                .concat(exchangeParameters.getDriverClassName().substring(1).toLowerCase())     // The rest of the exchange name (ucoin).
+                .concat(exchangeParameters.getDriverClassName().substring(1).toLowerCase())     // The rest of the exchange name (kucoin).
                 .concat(xChangeCLassSuffix);                                                    // Adding exchange (Exchange).
+    }
+
+    /**
+     * getExchangeSpecification.
+     * @return the exchange specification
+     */
+
+    public ExchangeSpecification getExchangeSpecification() {
+        return exchangeSpecification;
     }
 
     /**
@@ -300,6 +297,7 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
                     exchangeParameters.getRates().getTradeValueInMs(),
                     orderRepository,
                     getXChangeTradeService());
+            ActiveOrderController.initialize(orderRepository);
         }
         return tradeService;
     }
@@ -319,48 +317,6 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
     }
 
     /**
-     * Getter for tickerFlux.
-     *
-     * @return tickerFlux
-     */
-    @Bean
-    @DependsOn("getMarketService")
-    public TickerFlux getTickerFlux() {
-        if (tickerFlux == null) {
-            tickerFlux = new TickerFlux(applicationContext, getMarketService());
-        }
-        return tickerFlux;
-    }
-
-    /**
-     * Getter for orderFlux.
-     *
-     * @return orderFlux
-     */
-    @Bean
-    @DependsOn("getTradeService")
-    public OrderFlux getOrderFlux() {
-        if (orderFlux == null) {
-            orderFlux = new OrderFlux(orderRepository, getTradeService());
-        }
-        return orderFlux;
-    }
-
-    /**
-     * Getter for tradeFlux.
-     *
-     * @return tradeFlux
-     */
-    @Bean
-    @DependsOn("getTradeService")
-    public TradeFlux getTradeFlux() {
-        if (tradeFlux == null) {
-            tradeFlux = new TradeFlux(orderRepository, tradeRepository, getTradeService());
-        }
-        return tradeFlux;
-    }
-
-    /**
      * Getter for positionFlux.
      *
      * @return positionFlux
@@ -373,5 +329,4 @@ public class ExchangeAutoConfiguration extends BaseConfiguration {
         }
         return positionFlux;
     }
-
 }

@@ -49,19 +49,19 @@ public class Issue852Test {
         assertTrue(position1.isPresent());
         assertEquals(new CurrencyDTO("SHIB"), position1.get().getCurrencyPair().getBaseCurrency());
         assertEquals(new CurrencyDTO("USDT"), position1.get().getCurrencyPair().getQuoteCurrency());
-        assertEquals(1, position1.get().getCurrencyPair().getBaseCurrencyPrecision());
-        assertEquals(2, position1.get().getCurrencyPair().getQuoteCurrencyPrecision());
+        assertEquals(1, position1.get().getCurrencyPair().getBaseScale());
+        assertEquals(2, position1.get().getCurrencyPair().getQuoteScale());
 
         // Position 2 test (existing in database).
         final Optional<PositionDTO> position2 = positionService.getPositionById(2);
         assertTrue(position2.isPresent());
         assertEquals(new CurrencyDTO("ETH"), position2.get().getCurrencyPair().getBaseCurrency());
         assertEquals(new CurrencyDTO("BTC"), position2.get().getCurrencyPair().getQuoteCurrency());
-        assertEquals(3, position2.get().getCurrencyPair().getBaseCurrencyPrecision());
-        assertEquals(4, position2.get().getCurrencyPair().getQuoteCurrencyPrecision());
+        assertEquals(3, position2.get().getCurrencyPair().getBaseScale());
+        assertEquals(4, position2.get().getCurrencyPair().getQuoteScale());
 
         // Position 3 test (manual creation).
-        final CurrencyPairDTO newCurrencyPair = new CurrencyPairDTO("EUR",
+        final CurrencyPairDTO newCurrencyPair = CurrencyPairDTO.getInstance("EUR",
                 "SHIB",
                 6,
                 9);
@@ -75,8 +75,8 @@ public class Issue852Test {
         assertTrue(position3.isPresent());
         assertEquals(new CurrencyDTO("EUR"), position3.get().getCurrencyPair().getBaseCurrency());
         assertEquals(new CurrencyDTO("SHIB"), position3.get().getCurrencyPair().getQuoteCurrency());
-        assertEquals(6, position3.get().getCurrencyPair().getBaseCurrencyPrecision());
-        assertEquals(9, position3.get().getCurrencyPair().getQuoteCurrencyPrecision());
+        assertEquals(6, position3.get().getCurrencyPair().getBaseScale());
+        assertEquals(9, position3.get().getCurrencyPair().getQuoteScale());
     }
 
 }

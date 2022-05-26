@@ -73,7 +73,7 @@ public class BaseMock extends BaseTest {
     @Bean
     @Primary
     public OrderFlux orderFlux() {
-        return new OrderFlux(orderRepository, tradeService());
+        return new OrderFlux(tradeService());
     }
 
     @Bean

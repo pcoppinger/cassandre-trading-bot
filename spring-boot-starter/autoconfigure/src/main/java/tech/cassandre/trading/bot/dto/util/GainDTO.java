@@ -3,7 +3,7 @@ package tech.cassandre.trading.bot.dto.util;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.Singular;
+//import lombok.Singular;
 import lombok.Value;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import tech.cassandre.trading.bot.util.java.EqualsBuilder;
@@ -41,11 +41,11 @@ public class GainDTO {
     CurrencyAmountDTO amount;
 
     /** Opening order fees (list coming from trade fees). */
-    @Singular
+//  @Singular
     List<CurrencyAmountDTO> openingOrderFees;
 
     /** Closing order fees (list coming from trade fees). */
-    @Singular
+//  @Singular
     List<CurrencyAmountDTO> closingOrderFees;
 
     /** Fees. */

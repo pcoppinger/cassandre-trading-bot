@@ -53,7 +53,7 @@ public class MarketServiceTest {
     @Tag("integration")
     @DisplayName("Check get ticker")
     public void checkGetTicker() {
-        CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
         Set<TickerDTO> tickers = marketService.getTickers(Collections.singleton(cp));
         assertEquals(7, tickers.size());
 

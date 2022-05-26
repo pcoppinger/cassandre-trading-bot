@@ -31,8 +31,8 @@ public class NoTradingAccountStrategy extends BasicCassandreStrategy {
     @Override
     public final Set<CurrencyPairDTO> getRequestedCurrencyPairs() {
         Set<CurrencyPairDTO> requestedTickers = new LinkedHashSet<>();
-        requestedTickers.add(new CurrencyPairDTO(ETH, BTC));
-        requestedTickers.add(new CurrencyPairDTO(ETH, USDT));
+        requestedTickers.add(CurrencyPairDTO.getInstance(ETH, BTC));
+        requestedTickers.add(CurrencyPairDTO.getInstance(ETH, USDT));
         return requestedTickers;
     }
 

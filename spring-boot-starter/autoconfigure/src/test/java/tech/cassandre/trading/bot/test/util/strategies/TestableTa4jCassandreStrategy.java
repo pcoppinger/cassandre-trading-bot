@@ -62,7 +62,7 @@ public class TestableTa4jCassandreStrategy extends BasicTa4jCassandreStrategy {
 
     @Override
     public CurrencyPairDTO getRequestedCurrencyPair() {
-        return new CurrencyPairDTO(BTC, USDT);
+        return CurrencyPairDTO.getInstance(BTC, USDT);
     }
 
     @Override

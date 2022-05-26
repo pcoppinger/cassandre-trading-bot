@@ -54,7 +54,7 @@ public class MarketServiceTest {
     public void checkGetTicker() {
         // TODO Check if getTicker(Instrument instrument) has been implemented.
         // https://github.com/straumat/XChange/blob/develop/xchange-gemini/src/main/java/org/knowm/xchange/gemini/v1/service/GeminiMarketDataService.java
-        CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
         Optional<TickerDTO> t = marketService.getTicker(cp);
         assertTrue(t.isPresent());
         // currencyPair.

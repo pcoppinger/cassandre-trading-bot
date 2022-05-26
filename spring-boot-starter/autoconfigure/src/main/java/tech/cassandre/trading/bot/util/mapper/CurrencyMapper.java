@@ -43,17 +43,20 @@ public interface CurrencyMapper {
         final CurrencyPair cp = (CurrencyPair) source;
         CurrencyDTO base = new CurrencyDTO(cp.base.getCurrencyCode());
         CurrencyDTO quote = new CurrencyDTO(cp.counter.getCurrencyCode());
-        return CurrencyPairDTO.builder().baseCurrency(base).quoteCurrency(quote).build();
+        return CurrencyPairDTO.builder()
+                .baseCurrency(base)
+                .quoteCurrency(quote)
+                .build();
     }
 
     default CurrencyPairDTO mapToCurrencyPairDTO(String source) {
-        return new CurrencyPairDTO(source);
+        return CurrencyPairDTO.getInstance(source);
     }
 
     @Mapping(source = "base", target = "baseCurrency")
     @Mapping(source = "counter", target = "quoteCurrency")
-    @Mapping(target = "baseCurrencyPrecision", ignore = true)
-    @Mapping(target = "quoteCurrencyPrecision", ignore = true)
+    @Mapping(target = "baseScale", ignore = true)
+    @Mapping(target = "quoteScale", ignore = true)
     CurrencyPairDTO mapToCurrencyPairDTO(CurrencyPair source);
 
     @Mapping(source = "value", target = "value")

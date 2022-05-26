@@ -59,14 +59,14 @@ public class ExchangeServiceTest {
 		// Tests results.
 		assertTrue(expectedMinimumNumberOfAvailableCurrencyPairs < currencyPairs.size());
 
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO("KCS", "USDT")));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO(KCS, USDT)));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO("ETH", "USDT")));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO(ETH, USDT)));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO("BTC", "USDT")));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO(BTC, USDT)));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO("ETH", "BTC")));
-		assertTrue(currencyPairs.contains(new CurrencyPairDTO(ETH, BTC)));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance("KCS", "USDT")));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance(KCS, USDT)));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance("ETH", "USDT")));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance(ETH, USDT)));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance("BTC", "USDT")));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance(BTC, USDT)));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance("ETH", "BTC")));
+		assertTrue(currencyPairs.contains(CurrencyPairDTO.getInstance(ETH, BTC)));
 	}
 
 }

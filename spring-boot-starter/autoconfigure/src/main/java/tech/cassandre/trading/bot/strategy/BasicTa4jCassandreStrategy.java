@@ -1,5 +1,7 @@
 package tech.cassandre.trading.bot.strategy;
 
+import org.knowm.xchange.ExchangeSpecification;
+import org.springframework.context.ApplicationContext;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
@@ -116,6 +118,18 @@ public abstract class BasicTa4jCassandreStrategy extends GenericCassandreStrateg
     public final Set<CurrencyPairDTO> getRequestedCurrencyPairs() {
         // We only support one currency pair with BasicTa4jCassandreStrategy.
         return Set.of(getRequestedCurrencyPair());
+    }
+
+    /**
+     * initialize.
+     * @param context the application context
+     * @param specification the exchange specification
+     */
+    @Override
+    public void initialize(final ApplicationContext context,
+                           final ExchangeSpecification specification) {
+
+        initialize(context, specification, getRequestedCurrencyPair());
     }
 
     @Override

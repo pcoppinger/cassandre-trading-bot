@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
@@ -37,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.FLOOR;
+import static java.math.RoundingMode.HALF_EVEN;
 import static org.knowm.xchange.dto.Order.OrderStatus.FILLED;
 import static org.knowm.xchange.dto.marketdata.Trades.TradeSortType.SortByTimestamp;
 import static tech.cassandre.trading.bot.dto.position.PositionTypeDTO.LONG;
@@ -173,7 +174,7 @@ public class TradeServiceDryModeAOP extends BaseService {
     @Around("execution(* org.knowm.xchange.service.trade.TradeService.getOpenOrders())")
     public final OpenOrders getOpenOrders(final ProceedingJoinPoint pjp) {
         // For every new order in database, we send an update saying the order is filled.
-        List<LimitOrder> orders = orderRepository.findByStatusNot(CLOSED)
+        List<Order> orders = orderRepository.findByStatusNot(CLOSED)
                 .stream()
                 .map(ORDER_MAPPER::mapToOrderDTO)
                 .map(orderDTO -> new LimitOrder.Builder(UTIL_MAPPER.mapToOrderType(orderDTO.getType()), CURRENCY_MAPPER.mapToCurrencyPair(orderDTO.getCurrencyPair()))
@@ -237,7 +238,7 @@ public class TradeServiceDryModeAOP extends BaseService {
                                             //  openingTrade market price * (( openingTrade market price * rules gain)/100)
                                             final BigDecimal augmentation = positionDTO.get().getOpeningOrder().getMarketPriceValue()
                                                     .multiply(BigDecimal.valueOf(positionDTO.get().getRules().getStopGainPercentage()))
-                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, FLOOR);
+                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, HALF_EVEN);
                                             tradePrices.put(orderDTO.getOrderId(), openingTrade.getPriceValue().add(augmentation));
                                         } else if (positionDTO.get().getRules().isStopLossPercentageSet()
                                                 && gainDTO.get().getPercentage() < 0) {
@@ -252,7 +253,7 @@ public class TradeServiceDryModeAOP extends BaseService {
                                             //  openingTrade market price * (( openingTrade market price * rules gain)/100)
                                             final BigDecimal reduction = positionDTO.get().getOpeningOrder().getMarketPriceValue()
                                                     .multiply(BigDecimal.valueOf(positionDTO.get().getRules().getStopLossPercentage()))
-                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, FLOOR);
+                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, HALF_EVEN);
                                             tradePrices.put(orderDTO.getOrderId(), openingTrade.getPriceValue().subtract(reduction));
                                         }
                                         // =====================================================================================
@@ -279,9 +280,9 @@ public class TradeServiceDryModeAOP extends BaseService {
                                             //  2 * price = 70 000 USDT => price = 70 000/2 = 35 000
                                             final BigDecimal augmentation = openingTrade.getAmountValue()
                                                     .multiply(BigDecimal.valueOf(positionDTO.get().getRules().getStopGainPercentage()))
-                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, FLOOR);
+                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, HALF_EVEN);
                                             orderRepository.updateAmount(orderDTO.getId(), openingTrade.getAmountValue().add(augmentation));
-                                            tradePrices.put(orderDTO.getOrderId(), positionDTO.get().getOpeningOrder().getMarketPriceValue().divide(openingTrade.getAmountValue().add(augmentation), BIGINTEGER_SCALE, FLOOR));
+                                            tradePrices.put(orderDTO.getOrderId(), positionDTO.get().getOpeningOrder().getMarketPriceValue().divide(openingTrade.getAmountValue().add(augmentation), BIGINTEGER_SCALE, HALF_EVEN));
 
                                         } else if (positionDTO.get().getRules().isStopLossPercentageSet()
                                                 && gainDTO.get().getPercentage() < 0) {
@@ -303,9 +304,9 @@ public class TradeServiceDryModeAOP extends BaseService {
                                             //  0.9 * price = 40 000 USDT => price = 40 000/0.9
                                             final BigDecimal reduction = openingTrade.getAmountValue()
                                                     .multiply(BigDecimal.valueOf(positionDTO.get().getRules().getStopLossPercentage()))
-                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, FLOOR);
+                                                    .divide(ONE_HUNDRED_BIG_DECIMAL, BIGINTEGER_SCALE, HALF_EVEN);
                                             orderRepository.updateAmount(orderDTO.getId(), openingTrade.getAmountValue().subtract(reduction));
-                                            tradePrices.put(orderDTO.getOrderId(), positionDTO.get().getOpeningOrder().getMarketPriceValue().divide(openingTrade.getAmountValue().subtract(reduction), BIGINTEGER_SCALE, FLOOR));
+                                            tradePrices.put(orderDTO.getOrderId(), positionDTO.get().getOpeningOrder().getMarketPriceValue().divide(openingTrade.getAmountValue().subtract(reduction), BIGINTEGER_SCALE, HALF_EVEN));
                                         }
                                         // =====================================================================================
                                     }

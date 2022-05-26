@@ -40,31 +40,31 @@ public class BaseTest extends Base {
             .build();
 
     /** ETH/BTC. */
-    public static final CurrencyPairDTO ETH_BTC = new CurrencyPairDTO(ETH, BTC);
+    public static final CurrencyPairDTO ETH_BTC = CurrencyPairDTO.getInstance(ETH, BTC);
 
     /** XChange ETH/BTC. */
     public static final Instrument XCHANGE_ETH_BTC = CURRENCY_MAPPER.mapToInstrument(new CurrencyPair(Currency.ETH, Currency.BTC));
 
     /** ETH/USDT. */
-    public static final CurrencyPairDTO ETH_USDT = new CurrencyPairDTO(ETH, USDT);
+    public static final CurrencyPairDTO ETH_USDT = CurrencyPairDTO.getInstance(ETH, USDT);
 
     /** XChange ETH/USDT. */
     public static final Instrument XCHANGE_ETH_USDT = CURRENCY_MAPPER.mapToInstrument(new CurrencyPair(Currency.ETH, Currency.USDT));
 
     /** BTC/USDT. */
-    public static final CurrencyPairDTO BTC_USDT = new CurrencyPairDTO(BTC, USDT);
+    public static final CurrencyPairDTO BTC_USDT = CurrencyPairDTO.getInstance(BTC, USDT);
 
     /** XChange BTC/USDT. */
     public static final Instrument XCHANGE_BTC_USDT = CURRENCY_MAPPER.mapToInstrument(new CurrencyPair(Currency.BTC, Currency.USDT));
 
     /** KCS/USDT. */
-    public static final CurrencyPairDTO KCS_USDT = new CurrencyPairDTO(KCS, USDT);
+    public static final CurrencyPairDTO KCS_USDT = CurrencyPairDTO.getInstance(KCS, USDT);
 
     /** XChange KCS/USDT. */
     public static final Instrument XCHANGE_KCS_USDT = CURRENCY_MAPPER.mapToInstrument(new CurrencyPair(Currency.KCS, Currency.USDT));
 
     /** BTC/ETH. */
-    public static final CurrencyPairDTO BTC_ETH = new CurrencyPairDTO(BTC, ETH);
+    public static final CurrencyPairDTO BTC_ETH = CurrencyPairDTO.getInstance(BTC, ETH);
 
     /** XChange BTC/ETH. */
     public static final Instrument XCHANGE_BTC_ETH = CURRENCY_MAPPER.mapToInstrument(new CurrencyPair(Currency.BTC, Currency.ETH));

@@ -71,7 +71,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check creates a buy/sell market order")
     public void checkCreateBuySellMarketOrder() {
         // TODO Check later - those tests should pass
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy market order with a size below the minimum requirement. Testing error management.
@@ -99,7 +99,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check creates a buy limit order")
     public void checkCreateBuyLimitOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy limit order (Buy 0.0001 ETH).
@@ -139,7 +139,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check cancel an order")
     public void checkCancelOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // Making a buy limit order (Buy 0.0001 ETH).
         final OrderCreationResultDTO result1 = strategy.createSellLimitOrder(cp, new BigDecimal("0.1"), new BigDecimal("10000"));
@@ -159,7 +159,7 @@ public class TradeServiceTest extends BaseTest {
     @Tag("integration")
     @DisplayName("Check get trades")
     public void checkGetTrades() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // Creates two orders of the same amount (one buy, one sell).
         final OrderCreationResultDTO result1 = strategy.createBuyMarketOrder(cp, new BigDecimal("0.1"));

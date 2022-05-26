@@ -2,9 +2,7 @@ package tech.cassandre.trading.bot.dto.trade;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Singular;
 import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import tech.cassandre.trading.bot.dto.strategy.StrategyDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyAmountDTO;
@@ -57,11 +55,19 @@ public class OrderDTO {
     /** Market price - The price Cassandre had when the order was created. */
     CurrencyAmountDTO marketPrice;
 
+    /** Stop price - The trigger price to of a stop order. */
+    CurrencyAmountDTO stopPrice;
+
+    /** Is Stop Triggered - TRUE is the stop price was hit and the order was activated. */
+    Boolean stopTriggered;
+
+    /** The intention of the order (stop-loss or take-profit). */
+    OrderIntentionDTO intention;
+
     /** The leverage to use for margin related to this order. */
     String leverage;
 
     /** Order status. */
-    @NonFinal
     OrderStatusDTO status;
 
     /** Amount to be ordered / amount that has been matched against order on the order book/filled. */
@@ -70,21 +76,17 @@ public class OrderDTO {
     /** An identifier provided by the user on placement that uniquely identifies the order. */
     String userReference;
 
-    /** The timestamp of the order. */
+    /** The timestamp from the xchange when the order was created. */
     ZonedDateTime timestamp;
 
-    /** All trades related to the order. */
-    @Singular
-    Set<TradeDTO> trades;
+    /** The timestamp from xchange when the order was last updated. */
+    ZonedDateTime updatedAt;
 
-    /**
-     * Allows you to manually update order status.
-     *
-     * @param newStatus new status
-     */
-    public void updateStatus(final OrderStatusDTO newStatus) {
-        status = newStatus;
-    }
+    /** The timestamp from xchange when the order entered a final state (filled or canceled). */
+    ZonedDateTime endAt;
+
+    /** All trades related to the order. */
+    Set<TradeDTO> trades;
 
     /**
      * Returns trade from its id.
@@ -121,6 +123,19 @@ public class OrderDTO {
             return null;
         } else {
             return averagePrice.getValue();
+        }
+    }
+
+    /**
+     * Returns stop price value.
+     *
+     * @return stop price value
+     */
+    public BigDecimal getStopPriceValue() {
+        if (stopPrice == null) {
+            return null;
+        } else {
+            return stopPrice.getValue();
         }
     }
 
@@ -169,16 +184,22 @@ public class OrderDTO {
      * @return true if order completed
      */
     public boolean isFulfilled() {
-        return getTrades()
-                .stream()
-                .map(TradeDTO::getAmountValue)
-                .reduce(ZERO, BigDecimal::add)
-                .compareTo(getAmountValue()) == 0;
+        return status == OrderStatusDTO.FILLED
+                || (getTrades() != null && getTrades()
+                        .stream()
+                        .map(TradeDTO::getAmountValue)
+                        .reduce(ZERO, BigDecimal::add)
+                        .compareTo(getAmountValue()) == 0);
     }
 
+    /**
+     * equals comparison.
+     * @param o the other object
+     * @return true or false
+     */
     @Override
     @ExcludeFromCoverageGeneratedReport
-    public final boolean equals(final Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -187,22 +208,33 @@ public class OrderDTO {
         }
         final OrderDTO that = (OrderDTO) o;
         return new EqualsBuilder()
+                .append(this.id, that.id)
                 .append(this.orderId, that.orderId)
                 .append(this.type, that.type)
                 .append(this.currencyPair, that.currencyPair)
                 .append(this.amount, that.amount)
                 .append(this.averagePrice, that.averagePrice)
                 .append(this.limitPrice, that.limitPrice)
+                .append(this.marketPrice, that.marketPrice)
+                .append(this.stopPrice, that.stopPrice)
                 .append(this.leverage, that.leverage)
                 .append(this.status, that.status)
                 .append(this.cumulativeAmount, that.cumulativeAmount)
                 .append(this.userReference, that.userReference)
+                .append(this.intention, that.intention)
+                .append(this.stopTriggered, that.stopTriggered)
+                .append(this.updatedAt, that.updatedAt)
+                .append(this.endAt, that.endAt)
                 .isEquals();
     }
 
+    /**
+     * hashCode.
+     * @return the hash code
+     */
     @Override
     @ExcludeFromCoverageGeneratedReport
-    public final int hashCode() {
+    public int hashCode() {
         return new HashCodeBuilder()
                 .append(orderId)
                 .toHashCode();

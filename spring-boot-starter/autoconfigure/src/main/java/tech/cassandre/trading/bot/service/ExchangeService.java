@@ -1,5 +1,6 @@
 package tech.cassandre.trading.bot.service;
 
+import org.knowm.xchange.Exchange;
 import tech.cassandre.trading.bot.dto.util.CurrencyPairDTO;
 
 import java.util.Set;
@@ -16,4 +17,5 @@ public interface ExchangeService {
      */
     Set<CurrencyPairDTO> getAvailableCurrencyPairs();
 
+    Exchange getExchange();
 }

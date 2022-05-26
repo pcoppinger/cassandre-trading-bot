@@ -6,6 +6,8 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.instrument.Instrument;
 import tech.cassandre.trading.bot.util.test.ExcludeFromCoverageGeneratedReport;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -16,13 +18,19 @@ import java.util.Objects;
 @Value
 @Builder
 @SuppressWarnings("checkstyle:VisibilityModifier")
-public class CurrencyPairDTO {
+public final class CurrencyPairDTO {
 
     /** Currency pair separator. */
     public static final String CURRENCY_PAIR_SEPARATOR = "/";
 
     /** Currency pair default precision. */
-    private static final Integer DEFAULT_CURRENCY_PRECISION = 8;
+    private static final Integer DEFAULT_CURRENCY_SCALE = 8;
+
+    /** Currency pair default precision. */
+    private static final BigDecimal DEFAULT_LOT_MULTIPLIER = BigDecimal.ONE;
+
+    /** Set of all defined currency pairs. */
+    private static final HashMap<String, CurrencyPairDTO> CURRENCY_PAIRS = new HashMap<>();
 
     /** The base currency is the first currency appearing in a currency pair quotation. */
     CurrencyDTO baseCurrency;
@@ -30,18 +38,89 @@ public class CurrencyPairDTO {
     /** The quote currency is the second currency appearing in a currency pair quotation. */
     CurrencyDTO quoteCurrency;
 
-    /** The base currency precision. */
-    int baseCurrencyPrecision;
+    /** The base currency scale. */
+    int baseScale;
 
-    /** The quote currency precision. */
-    int quoteCurrencyPrecision;
+    /** The quote currency scale. */
+    int quoteScale;
+
+    /**
+     * Static singleton builder.
+     *
+     * @param currencyPair currency pair descriptor
+     * @return the matched currency pair
+     */
+    public static CurrencyPairDTO getInstance(final String currencyPair) {
+        CurrencyPairDTO dto = CURRENCY_PAIRS.get(currencyPair);
+        if (dto == null) {
+            dto = new CurrencyPairDTO(currencyPair);
+            CURRENCY_PAIRS.put(currencyPair, dto);
+        }
+        return dto;
+    }
+
+    /**
+     * Static singleton builder.
+     *
+     * @param base the base currency code
+     * @param quote the quote currency code
+     * @return the matched currency pair
+     */
+    public static CurrencyPairDTO getInstance(final String base, final String quote) {
+        return getInstance(base + CURRENCY_PAIR_SEPARATOR + quote);
+    }
+
+    /**
+     * Static singleton builder.
+     *
+     * @param base the base currency code
+     * @param quote the quote currency code
+     * @param baseScale the base currency scale
+     * @param quoteScale the quote currency scale
+     * @return the matched currency pair
+     */
+    public static CurrencyPairDTO getInstance(final String base,
+                                              final String quote,
+                                              final int baseScale,
+                                              final int quoteScale) {
+        final String key = base + CURRENCY_PAIR_SEPARATOR + quote;
+        CurrencyPairDTO dto = CURRENCY_PAIRS.get(key);
+        if (dto == null || dto.baseScale == baseScale || dto.quoteScale != quoteScale) {
+            CURRENCY_PAIRS.remove(key);
+            dto = new CurrencyPairDTO(base, quote, baseScale, quoteScale);
+            CURRENCY_PAIRS.put(key, dto);
+        }
+        return dto;
+    }
+
+    /**
+     * Static singleton builder.
+     *
+     * @param base  The base currency
+     * @param quote The quote currency
+     * @return the matched currency pair
+     */
+    public static CurrencyPairDTO getInstance(final CurrencyDTO base, final CurrencyDTO quote) {
+        return getInstance(base.getCurrencyCode(), quote.getCurrencyCode());
+    }
+
+    /**
+     * Static singleton builder.
+     *
+     * @param instrument currency pair descriptor
+     * @return the matched currency pair
+     */
+    public static CurrencyPairDTO getInstance(final Instrument instrument) {
+        final CurrencyPair cp = (CurrencyPair) instrument;
+        return getInstance(cp.base.getCurrencyCode() + CURRENCY_PAIR_SEPARATOR + cp.counter.getCurrencyCode());
+    }
 
     /**
      * Constructor.
      *
      * @param currencyPair currency pair
      */
-    public CurrencyPairDTO(final String currencyPair) {
+    private CurrencyPairDTO(final String currencyPair) {
         this(currencyPair.split(CURRENCY_PAIR_SEPARATOR)[0], currencyPair.split(CURRENCY_PAIR_SEPARATOR)[1]);
     }
 
@@ -50,7 +129,7 @@ public class CurrencyPairDTO {
      *
      * @param currencyPair currency pair
      */
-    public CurrencyPairDTO(final CurrencyPair currencyPair) {
+    private CurrencyPairDTO(final CurrencyPair currencyPair) {
         this(currencyPair.base.toString(), currencyPair.counter.toString());
     }
 
@@ -60,20 +139,25 @@ public class CurrencyPairDTO {
      * @param newBaseCurrency  The base currency
      * @param newQuoteCurrency The quote currency
      */
-    public CurrencyPairDTO(final String newBaseCurrency, final String newQuoteCurrency) {
-        this(CurrencyDTO.getInstance(newBaseCurrency), CurrencyDTO.getInstance(newQuoteCurrency), DEFAULT_CURRENCY_PRECISION, DEFAULT_CURRENCY_PRECISION);
+    private CurrencyPairDTO(final String newBaseCurrency, final String newQuoteCurrency) {
+        this(CurrencyDTO.getInstance(newBaseCurrency), CurrencyDTO.getInstance(newQuoteCurrency),
+                DEFAULT_CURRENCY_SCALE, DEFAULT_CURRENCY_SCALE);
     }
 
     /**
      * Constructor with {@link CurrencyDTO}.
      *
-     * @param newBaseCurrency           The base currency
-     * @param newQuoteCurrency          The quote currency
-     * @param newBaseCurrencyPrecision  the base currency precision
-     * @param newQuoteCurrencyPrecision the quote currency precision
+     * @param baseCode the base currency
+     * @param quoteCode the quote currency
+     * @param baseScale  the base currency scale
+     * @param quoteScale the quote currency scale
      */
-    public CurrencyPairDTO(final String newBaseCurrency, final String newQuoteCurrency, final int newBaseCurrencyPrecision, final int newQuoteCurrencyPrecision) {
-        this(CurrencyDTO.getInstance(newBaseCurrency), CurrencyDTO.getInstance(newQuoteCurrency), newBaseCurrencyPrecision, newQuoteCurrencyPrecision);
+    @SuppressWarnings("checkstyle:HiddenField")
+    private CurrencyPairDTO(final String baseCode,
+                           final String quoteCode,
+                           final int baseScale,
+                           final int quoteScale) {
+        this(CurrencyDTO.getInstance(baseCode), CurrencyDTO.getInstance(quoteCode), baseScale, quoteScale);
     }
 
     /**
@@ -82,23 +166,27 @@ public class CurrencyPairDTO {
      * @param newBaseCurrency  The base currency
      * @param newQuoteCurrency The quote currency
      */
-    public CurrencyPairDTO(final CurrencyDTO newBaseCurrency, final CurrencyDTO newQuoteCurrency) {
-        this(newBaseCurrency, newQuoteCurrency, DEFAULT_CURRENCY_PRECISION, DEFAULT_CURRENCY_PRECISION);
+    private CurrencyPairDTO(final CurrencyDTO newBaseCurrency, final CurrencyDTO newQuoteCurrency) {
+        this(newBaseCurrency, newQuoteCurrency, DEFAULT_CURRENCY_SCALE, DEFAULT_CURRENCY_SCALE);
     }
 
     /**
      * Constructor with String.
      *
-     * @param newBaseCurrency           The base currency
-     * @param newQuoteCurrency          The quote currency
-     * @param newBaseCurrencyPrecision  the base currency precision
-     * @param newQuoteCurrencyPrecision the quote currency precision
+     * @param baseCurrency   The base currency
+     * @param quoteCurrency  The quote currency
+     * @param baseScale      The base currency scale
+     * @param quoteScale     The quote currency precision
      */
-    public CurrencyPairDTO(final CurrencyDTO newBaseCurrency, final CurrencyDTO newQuoteCurrency, final int newBaseCurrencyPrecision, final int newQuoteCurrencyPrecision) {
-        this.baseCurrency = newBaseCurrency;
-        this.quoteCurrency = newQuoteCurrency;
-        this.baseCurrencyPrecision = newBaseCurrencyPrecision;
-        this.quoteCurrencyPrecision = newQuoteCurrencyPrecision;
+    @SuppressWarnings("checkstyle:HiddenField")
+    private CurrencyPairDTO(final CurrencyDTO baseCurrency,
+                           final CurrencyDTO quoteCurrency,
+                           final int baseScale,
+                           final int quoteScale) {
+        this.baseCurrency = baseCurrency;
+        this.quoteCurrency = quoteCurrency;
+        this.baseScale = baseScale;
+        this.quoteScale = quoteScale;
     }
 
     /**
@@ -106,31 +194,31 @@ public class CurrencyPairDTO {
      *
      * @param instrument instrument
      */
-    public CurrencyPairDTO(final Instrument instrument) {
-        final CurrencyPair cp = (CurrencyPair) instrument;
-        this.baseCurrency = new CurrencyDTO(cp.base.getCurrencyCode());
-        this.quoteCurrency = new CurrencyDTO(cp.counter.getCurrencyCode());
-        this.baseCurrencyPrecision = DEFAULT_CURRENCY_PRECISION;
-        this.quoteCurrencyPrecision = DEFAULT_CURRENCY_PRECISION;
+    private CurrencyPairDTO(final Instrument instrument) {
+        this(((CurrencyPair) instrument).base.getCurrencyCode(),
+             ((CurrencyPair) instrument).counter.getCurrencyCode(),
+             DEFAULT_CURRENCY_SCALE,
+             DEFAULT_CURRENCY_SCALE);
     }
     /**
      * Constructor from XChange instrument.
      *
-     * @param instrument                instrument
-     * @param newBaseCurrencyPrecision  the base currency precision
-     * @param newQuoteCurrencyPrecision the quote currency precision
+     * @param instrument    instrument
+     * @param baseScale     the base currency scale
+     * @param quoteScale    the quote currency scale
      */
-    public CurrencyPairDTO(final Instrument instrument, final int newBaseCurrencyPrecision, final int newQuoteCurrencyPrecision) {
-        final CurrencyPair cp = (CurrencyPair) instrument;
-        this.baseCurrency = new CurrencyDTO(cp.base.getCurrencyCode());
-        this.quoteCurrency = new CurrencyDTO(cp.counter.getCurrencyCode());
-        this.baseCurrencyPrecision = newBaseCurrencyPrecision;
-        this.quoteCurrencyPrecision = newQuoteCurrencyPrecision;
+    @SuppressWarnings("checkstyle:HiddenField")
+    private CurrencyPairDTO(final Instrument instrument,
+                            final int baseScale,
+                            final int quoteScale) {
+        this(((CurrencyPair) instrument).base.getCurrencyCode(),
+             ((CurrencyPair) instrument).counter.getCurrencyCode(),
+             baseScale, quoteScale);
     }
 
     @Override
     @ExcludeFromCoverageGeneratedReport
-    public final boolean equals(final Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -144,12 +232,12 @@ public class CurrencyPairDTO {
 
     @Override
     @ExcludeFromCoverageGeneratedReport
-    public final int hashCode() {
+    public int hashCode() {
         return Objects.hash(getBaseCurrency().getCode(), getQuoteCurrency().getCode());
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return baseCurrency + CURRENCY_PAIR_SEPARATOR + quoteCurrency;
     }
 

@@ -109,7 +109,7 @@ public class OrderTest extends BaseTest {
         assertNotNull(o.get().getStrategy());
         assertEquals(1, o.get().getStrategy().getId());
         assertEquals("01", o.get().getStrategy().getStrategyId());
-        assertEquals(new CurrencyPairDTO("USDT/BTC"), o.get().getCurrencyPair());
+        assertEquals(CurrencyPairDTO.getInstance("USDT/BTC"), o.get().getCurrencyPair());
         assertEquals(0, new BigDecimal("0.000015").compareTo(o.get().getAmount().getValue()));
         assertEquals(USDT, o.get().getAmount().getCurrency());
         assertEquals(0, new BigDecimal("0.000013").compareTo(o.get().getAveragePrice().getValue()));

@@ -54,7 +54,7 @@ public class Issue427TestMock extends BaseTest {
     @Bean
     @Primary
     public OrderFlux orderFlux() {
-        return new OrderFlux(orderRepository, tradeService());
+        return new OrderFlux(tradeService());
     }
 
     @Bean
@@ -70,7 +70,7 @@ public class Issue427TestMock extends BaseTest {
         MarketService marketService = mock(MarketService.class);
 
         // Replies for ETH / BTC.
-        final CurrencyPairDTO cp1 = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp1 = CurrencyPairDTO.getInstance(ETH, BTC);
         given(marketService
                 .getTicker(cp1))
                 .willReturn(
@@ -80,7 +80,7 @@ public class Issue427TestMock extends BaseTest {
                         Optional.of(TickerDTO.builder().currencyPair(cp1).timestamp(createZonedDateTime(4)).last(new BigDecimal("0.4")).build())
                 );
         // Replies for ETH / USDT.
-        final CurrencyPairDTO cp2 = new CurrencyPairDTO(ETH, USDT);
+        final CurrencyPairDTO cp2 = CurrencyPairDTO.getInstance(ETH, USDT);
         given(marketService
                 .getTicker(cp2))
                 .willReturn(

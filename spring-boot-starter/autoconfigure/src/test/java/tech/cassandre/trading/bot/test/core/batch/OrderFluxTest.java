@@ -70,17 +70,17 @@ public class OrderFluxTest extends BaseTest {
         // ORDER_000001 creation.
         final OrderCreationResultDTO order000001 = tradeService.createSellMarketOrder(strategy, ETH_BTC, new BigDecimal("1"));
         assertTrue(order000001.isSuccessful());
-        assertEquals("ORDER_000001", order000001.getOrderId());
+        assertEquals("ORDER_000001", order000001.getOrder().getOrderId());
 
         // ORDER_000002 creation.
         final OrderCreationResultDTO order000002 = tradeService.createBuyMarketOrder(strategy, ETH_USDT, new BigDecimal("2"));
         assertTrue(order000002.isSuccessful());
-        assertEquals("ORDER_000002", order000002.getOrderId());
+        assertEquals("ORDER_000002", order000002.getOrder().getOrderId());
 
         // ORDER_000003 creation.
         final OrderCreationResultDTO order000003 = tradeService.createSellMarketOrder(strategy, ETH_BTC, new BigDecimal("3"));
         assertTrue(order000003.isSuccessful());
-        assertEquals("ORDER_000003", order000003.getOrderId());
+        assertEquals("ORDER_000003", order000003.getOrder().getOrderId());
 
         // We wait for the orders to be created in database.
         await().until(() -> orderRepository.count() == 3);

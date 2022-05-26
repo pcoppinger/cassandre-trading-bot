@@ -1,5 +1,7 @@
 package tech.cassandre.trading.bot.strategy;
 
+import org.knowm.xchange.ExchangeSpecification;
+import org.springframework.context.ApplicationContext;
 import tech.cassandre.trading.bot.batch.PositionFlux;
 import tech.cassandre.trading.bot.dto.market.TickerDTO;
 import tech.cassandre.trading.bot.dto.position.PositionDTO;
@@ -13,6 +15,7 @@ import tech.cassandre.trading.bot.repository.OrderRepository;
 import tech.cassandre.trading.bot.repository.PositionRepository;
 import tech.cassandre.trading.bot.repository.TradeRepository;
 import tech.cassandre.trading.bot.service.ExchangeService;
+import tech.cassandre.trading.bot.service.MarketService;
 import tech.cassandre.trading.bot.service.PositionService;
 import tech.cassandre.trading.bot.service.TradeService;
 
@@ -98,6 +101,13 @@ public interface CassandreStrategyInterface {
     void setExchangeService(ExchangeService newExchangeService);
 
     /**
+     * Setter for marketService.
+     *
+     * @param newMarketService the marketService to set
+     */
+    void setMarketService(MarketService newMarketService);
+
+    /**
      * Setter for tradeService.
      *
      * @param newTradeService the tradeService to set
@@ -171,8 +181,11 @@ public interface CassandreStrategyInterface {
     /**
      * This method is called by Cassandre before flux are started.
      * For example, you can implement this method to prepare your historical data.
+     *
+     * @param context the application context
+     * @param specification the exchange specification
      */
-    void initialize();
+    void initialize(ApplicationContext context, ExchangeSpecification specification);
 
     /**
      * Method called by Cassandre when there are accounts updates.
@@ -215,5 +228,4 @@ public interface CassandreStrategyInterface {
      * @param positions positions status updates
      */
     void onPositionsStatusUpdates(Map<Long, PositionDTO> positions);
-
 }

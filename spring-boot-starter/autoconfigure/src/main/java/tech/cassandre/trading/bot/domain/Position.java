@@ -30,6 +30,8 @@ import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.PRECISION;
+import static tech.cassandre.trading.bot.configuration.DatabaseAutoConfiguration.SCALE;
 
 /**
  * Position.
@@ -67,17 +69,17 @@ public class Position extends BaseDomain {
     private String currencyPair;
 
     /** Base currency precision (First part of the currency pair). */
-    @Column(name = "BASE_CURRENCY_PRECISION")
-    private Integer baseCurrencyPrecision;
+    @Column(name = "BASE_SCALE")
+    private Integer baseScale;
 
-    /** Quote currency precision (Second part of the currency pair). */
-    @Column(name = "QUOTE_CURRENCY_PRECISION")
-    private Integer quoteCurrencyPrecision;
+    /** Quote currency scale (Second part of the currency pair). */
+    @Column(name = "QUOTE_SCALE")
+    private Integer quoteScale;
 
     /** Amount that was ordered. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "AMOUNT_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "AMOUNT_CURRENCY"))
     })
     private CurrencyAmount amount;
@@ -116,7 +118,7 @@ public class Position extends BaseDomain {
     /** Price of the lowest gain reached by this position. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "LOWEST_GAIN_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "LOWEST_GAIN_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "LOWEST_GAIN_PRICE_CURRENCY"))
     })
     private CurrencyAmount lowestGainPrice;
@@ -124,7 +126,7 @@ public class Position extends BaseDomain {
     /** Price of the highest gain reached by this position. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "HIGHEST_GAIN_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "HIGHEST_GAIN_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "HIGHEST_GAIN_PRICE_CURRENCY"))
     })
     private CurrencyAmount highestGainPrice;
@@ -132,7 +134,7 @@ public class Position extends BaseDomain {
     /** Price of the latest gain price for this position. */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "LATEST_GAIN_PRICE_VALUE")),
+            @AttributeOverride(name = "value", column = @Column(name = "LATEST_GAIN_PRICE_VALUE", precision = PRECISION, scale = SCALE)),
             @AttributeOverride(name = "currency", column = @Column(name = "LATEST_GAIN_PRICE_CURRENCY"))
     })
     private CurrencyAmount latestGainPrice;

@@ -10,17 +10,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import reactor.core.publisher.ConnectableFlux;
 import tech.cassandre.trading.bot.batch.AccountFlux;
-import tech.cassandre.trading.bot.batch.OrderFlux;
 import tech.cassandre.trading.bot.batch.PositionFlux;
-import tech.cassandre.trading.bot.batch.TickerFlux;
-import tech.cassandre.trading.bot.batch.TradeFlux;
 import tech.cassandre.trading.bot.domain.ImportedTicker;
 import tech.cassandre.trading.bot.domain.Strategy;
-import tech.cassandre.trading.bot.dto.market.TickerDTO;
 import tech.cassandre.trading.bot.dto.position.PositionDTO;
 import tech.cassandre.trading.bot.dto.strategy.StrategyDTO;
-import tech.cassandre.trading.bot.dto.trade.OrderDTO;
-import tech.cassandre.trading.bot.dto.trade.TradeDTO;
 import tech.cassandre.trading.bot.dto.user.AccountDTO;
 import tech.cassandre.trading.bot.dto.user.UserDTO;
 import tech.cassandre.trading.bot.dto.util.CurrencyPairDTO;
@@ -30,6 +24,7 @@ import tech.cassandre.trading.bot.repository.PositionRepository;
 import tech.cassandre.trading.bot.repository.StrategyRepository;
 import tech.cassandre.trading.bot.repository.TradeRepository;
 import tech.cassandre.trading.bot.service.ExchangeService;
+import tech.cassandre.trading.bot.service.MarketService;
 import tech.cassandre.trading.bot.service.PositionService;
 import tech.cassandre.trading.bot.service.PositionServiceCassandreImplementation;
 import tech.cassandre.trading.bot.service.TradeService;
@@ -103,6 +98,9 @@ public class StrategiesAutoConfiguration extends BaseConfiguration {
     /** User service. */
     private final UserService userService;
 
+    /** Market service. */
+    private final MarketService marketService;
+
     /** Trade service. */
     private final TradeService tradeService;
 
@@ -112,17 +110,11 @@ public class StrategiesAutoConfiguration extends BaseConfiguration {
     /** Account flux. */
     private final AccountFlux accountFlux;
 
-    /** Ticker flux. */
-    private final TickerFlux tickerFlux;
-
-    /** Order flux. */
-    private final OrderFlux orderFlux;
-
-    /** Trade flux. */
-    private final TradeFlux tradeFlux;
-
     /** Position flux. */
     private final PositionFlux positionFlux;
+
+    /** Exchange Auto Configure. */
+    private final ExchangeAutoConfiguration exchangeAutoConfiguration;
 
     /**
      * Search for strategies and runs them.
@@ -252,11 +244,8 @@ public class StrategiesAutoConfiguration extends BaseConfiguration {
 
         // =============================================================================================================
         // Creating flux.
-        final ConnectableFlux<Set<AccountDTO>> connectableAccountFlux = accountFlux.getFlux().publish();
         final ConnectableFlux<Set<PositionDTO>> connectablePositionFlux = positionFlux.getFlux().publish();
-        final ConnectableFlux<Set<OrderDTO>> connectableOrderFlux = orderFlux.getFlux().publish();
-        final ConnectableFlux<Set<TickerDTO>> connectableTickerFlux = tickerFlux.getFlux().publish();
-        final ConnectableFlux<Set<TradeDTO>> connectableTradeFlux = tradeFlux.getFlux().publish();
+        final ConnectableFlux<Set<AccountDTO>> connectableAccountFlux = accountFlux.getFlux().publish();
 
         // =============================================================================================================
         // Configuring strategies.
@@ -314,26 +303,22 @@ public class StrategiesAutoConfiguration extends BaseConfiguration {
                     strategy.setPositionRepository(positionRepository);
                     strategy.setImportedTickersRepository(importedTickersRepository);
                     strategy.setExchangeService(exchangeService);
+                    strategy.setMarketService(marketService);
                     strategy.setTradeService(tradeService);
                     strategy.setPositionService(positionService);
 
                     // Calling user defined initialize() method.
-                    strategy.initialize();
+                    strategy.initialize(applicationContext,
+                            exchangeAutoConfiguration.getExchangeSpecification());
 
                     // Connecting flux to strategy.
-                    connectableAccountFlux.subscribe(strategy::accountsUpdates, throwable -> logger.error("AccountsUpdates failing: {}.", throwable.getMessage()));
                     connectablePositionFlux.subscribe(strategy::positionsUpdates, throwable -> logger.error("PositionsUpdates failing: {}.", throwable.getMessage()));
-                    connectableOrderFlux.subscribe(strategy::ordersUpdates, throwable -> logger.error("OrdersUpdates failing: {}.", throwable.getMessage()));
-                    connectableTradeFlux.subscribe(strategy::tradesUpdates, throwable -> logger.error("TradesUpdates failing: {}.", throwable.getMessage()));
-                    connectableTickerFlux.subscribe(strategy::tickersUpdates, throwable -> logger.error("TickersUpdates failing: {}.", throwable.getMessage()));
+                    connectableAccountFlux.subscribe(strategy::accountsUpdates, throwable -> logger.error("AccountsUpdates failing: {}.", throwable.getMessage()));
                 });
 
         // Start flux.
-        connectableAccountFlux.connect();
         connectablePositionFlux.connect();
-        connectableOrderFlux.connect();
-        connectableTradeFlux.connect();
-        connectableTickerFlux.connect();
+        connectableAccountFlux.connect();
     }
 
     /**

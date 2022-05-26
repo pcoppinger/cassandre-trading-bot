@@ -41,12 +41,12 @@ public class PositionServiceDryModeTestMock extends BaseTest {
         // We don't use the getTickers method.
         given(marketService.getTickers(any())).willThrow(new NotAvailableFromExchangeException("Not available in test"));
         // Replies for ETH / BTC.
-        final CurrencyPairDTO cp1 = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp1 = CurrencyPairDTO.getInstance(ETH, BTC);
         given(marketService
                 .getTicker(cp1))
                 .willReturn(Optional.empty());
         // Replies for ETH / USDT.
-        final CurrencyPairDTO cp2 = new CurrencyPairDTO(ETH, USDT);
+        final CurrencyPairDTO cp2 = CurrencyPairDTO.getInstance(ETH, USDT);
         given(marketService
                 .getTicker(cp2))
                 .willReturn(Optional.empty());

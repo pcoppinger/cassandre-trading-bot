@@ -7,7 +7,6 @@ import tech.cassandre.trading.bot.util.base.service.BaseService;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Exchange service - XChange implementation.
@@ -18,17 +17,37 @@ public class ExchangeServiceXChangeImplementation extends BaseService implements
     /** XChange service. */
     private final Exchange exchange;
 
+    /** Set of available currency pairs. */
+    private final LinkedHashSet<CurrencyPairDTO> currencyPairs = new LinkedHashSet<>();
+
+    /**
+     * getExchange.
+     * @return the exchange
+     */
+    @Override
+    public Exchange getExchange() {
+        return exchange;
+    }
+
     @Override
     @SuppressWarnings("checkstyle:DesignForExtension")
     public Set<CurrencyPairDTO> getAvailableCurrencyPairs() {
-        logger.debug("Retrieving available currency pairs");
-        return exchange.getExchangeMetaData()
-                .getCurrencyPairs()
-                .keySet()
-                .stream()
-                .peek(cp -> logger.debug(" - {} available", cp))
-                .map(CURRENCY_MAPPER::mapToCurrencyPairDTO)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (currencyPairs.isEmpty()) {
+            logger.debug("Retrieving available currency pairs");
+            exchange.getExchangeMetaData()
+                    .getCurrencyPairs()
+                    .forEach((pair, meta) -> {
+                        currencyPairs.add(
+                            CurrencyPairDTO.getInstance(
+                                pair.base.getCurrencyCode(),
+                                pair.counter.getCurrencyCode(),
+                                meta.getAmountStepSize().scale(),
+                                meta.getPriceScale()
+                            )
+                        );
+                    });
+        }
+        return currencyPairs;
     }
 
 }

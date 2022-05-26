@@ -88,6 +88,10 @@ public class ExchangeParameters {
         @NotNull(message = "Dry parameter required, set it to true to use the dry mode (simulated exchange)")
         private Boolean dry;
 
+        /** Set it to true to use the futures market. */
+        @NotNull(message = "Futures parameter required, set it to true to use futures market")
+        private Boolean futures;
+
     }
 
     /** Exchange API rate calls. */

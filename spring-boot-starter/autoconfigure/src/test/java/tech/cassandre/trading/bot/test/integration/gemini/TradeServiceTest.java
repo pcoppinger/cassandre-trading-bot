@@ -72,7 +72,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check creates a buy/sell market order")
     @Disabled("Gemini doesn't support market order")
     public void checkCreateBuySellMarketOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy market order with a size below the minimum requirement. Testing error management.
@@ -101,7 +101,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check creates a buy limit order")
     @Disabled("Gemini doesn't support market order")
     public void checkCreateBuyLimitOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // =============================================================================================================
         // Making a buy limit order (Buy 0.0001 ETH).
@@ -146,7 +146,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check cancel an order")
     @Disabled("Gemini doesn't support market order")
     public void checkCancelOrder() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // Making a buy limit order (Buy 0.0001 ETH).
         final OrderCreationResultDTO result1 = strategy.createSellLimitOrder(cp, new BigDecimal("0.0001"), new BigDecimal("10000000"));
@@ -170,7 +170,7 @@ public class TradeServiceTest extends BaseTest {
     @DisplayName("Check get trades")
     @Disabled("Gemini doesn't support market order")
     public void checkGetTrades() {
-        final CurrencyPairDTO cp = new CurrencyPairDTO(ETH, BTC);
+        final CurrencyPairDTO cp = CurrencyPairDTO.getInstance(ETH, BTC);
 
         // Creates two orders of the same amount (one buy, one sell).
         final OrderCreationResultDTO result1 = strategy.createBuyMarketOrder(cp, new BigDecimal("0.0001"));
